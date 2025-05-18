@@ -28,7 +28,6 @@ function App() {
     datasets: []
   });
 
-  // Update chart when response is received
   useEffect(() => {
     if (response?.recommendations) {
       const newData = {
@@ -44,9 +43,7 @@ function App() {
             inputTokens: model.input_tokens,
             outputTokens: model.output_tokens
           })),
-          backgroundColor: response.recommendations.map(model => 
-            getColor(model.arena_score)
-          ),
+          backgroundColor: response.recommendations.map(model => getColor(model.arena_score)),
           borderColor: '#fff',
           borderWidth: 1,
           pointStyle: 'circle',
@@ -129,7 +126,7 @@ function App() {
   return (
     <>
       <div className="app-container">
-        <h1>ECO AI Toolkit</h1>
+        <h1 className="main-title">🌿 ECO AI Toolkit</h1>
         
         <div className="input-section">
           <h2>Enter your prompt:</h2>
@@ -138,8 +135,9 @@ function App() {
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Type your AI prompt here..."
             disabled={loading}
+            className="prompt-textarea"
           />
-          <button onClick={analyzePrompt} disabled={loading}>
+          <button onClick={analyzePrompt} disabled={loading} className="btn-analyze">
             {loading ? 'Analyzing...' : 'Analyze'}
           </button>
         </div>
@@ -155,7 +153,7 @@ function App() {
                 <div key={index} className="model-card">
                   <h4>{model.model}</h4>
                   <p><strong>Organization:</strong> {model.organization}</p>
-                  <p><strong>Arena Score:</strong> {model.arena_score}</p>
+                  <p><strong>Arena Score:</strong> {model.arena_score.toFixed(2)}</p>
                   <p><strong>Input Tokens:</strong> {model.input_tokens}</p>
                   <p><strong>Output Tokens:</strong> {model.output_tokens}</p>
                   <p><strong>Estimated Cost:</strong> 
@@ -170,29 +168,30 @@ function App() {
         )}
       </div>
       
-      {/* Bubble Chart */}
-      <div style={{ width: 900, height: 600, margin: '20px auto', fontFamily: 'Arial, sans-serif' }}>
-        <h2 style={{ textAlign: 'center' }}>LLM Comparison</h2>
-        {chartData.datasets.length > 0 ? (
-          <>
-            <Bubble data={chartData} options={options} />
-            <div style={{ marginTop: 20, textAlign: 'center' }}>
-              <span style={{ fontWeight: 'bold' }}>Arena Score Legend:</span>
-              <div style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 10, gap: 15 }}>
-                <div style={{ backgroundColor: 'rgb(255,0,0)', width: 20, height: 20, borderRadius: '50%' }}></div>
-                <span>0 (low)</span>
-                <div style={{ backgroundColor: 'rgb(128,128,0)', width: 20, height: 20, borderRadius: '50%' }}></div>
-                <span>0.5 (medium)</span>
-                <div style={{ backgroundColor: 'rgb(0,255,0)', width: 20, height: 20, borderRadius: '50%' }}></div>
-                <span>1 (high)</span>
+      <div className="chart-container">
+        <h2 className="chart-title">LLM Comparison</h2>
+        <div className="graph-wrapper">
+          {chartData.datasets.length > 0 ? (
+            <>
+              <Bubble data={chartData} options={options} style={{ height: "100%", width: "100%" }} />
+              <div className="legend-container">
+                <span className="legend-title">Arena Score Legend:</span>
+                <div className="legend-items">
+                  <div className="legend-color" style={{ backgroundColor: 'rgb(255,0,0)' }}></div>
+                  <span>0 (low)</span>
+                  <div className="legend-color" style={{ backgroundColor: 'rgb(128,128,0)' }}></div>
+                  <span>0.5 (medium)</span>
+                  <div className="legend-color" style={{ backgroundColor: 'rgb(0,255,0)' }}></div>
+                  <span>1 (high)</span>
+                </div>
               </div>
+            </>
+          ) : (
+            <div className="empty-chart-message">
+              <p>Analyze a prompt to see recommendations on the chart</p>
             </div>
-          </>
-        ) : (
-          <div style={{ textAlign: 'center', marginTop: 50 }}>
-            <p>Analyze a prompt to see recommendations on the chart</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </>
   );
