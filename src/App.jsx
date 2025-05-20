@@ -29,67 +29,83 @@ function App() {
   });
   const [expandedIndex, setExpandedIndex] = useState(null);
 
+  
   useEffect(() => {
-    if (response?.recommendations) {
-      const newData = {
-        datasets: [{
-          label: 'Recommended LLMs',
-          data: response.recommendations.map(model => ({
-            x: typeof model.cost_usd === 'number' ? model.cost_usd : 0,
-            y: model.carbon_footprint || 1,
-            r: model.performance_score || 10,
-            name: model.model,
-            larena: model.arena_score,
-            organization: model.organization,
-            inputTokens: model.input_tokens,
-            outputTokens: model.output_tokens
-          })),
-          backgroundColor: response.recommendations.map(model => getColor(model.arena_score,model.carbon_footprint,model.cost_usd)),
-          borderColor: '#fff',
-          borderWidth: 1,
-          pointStyle: 'circle',
-          showLine: false,
-        }]
-      };
-      setChartData(newData);
-    }
-  }, [response]);
+  if (response?.recommendations?.length > 0) {
+    const recommendations = response.recommendations;
+    
+    // Trouver les valeurs max pour une échelle adaptative
+    const maxCost = Math.max(...recommendations.map(m => m.cost_usd || 0));
+    const maxCarbon = Math.max(...recommendations.map(m => m.carbon_footprint || 0));
+    const maxArena = Math.max(...recommendations.map(m => m.arena_score || 0));
 
-  const options = {
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const d = context.raw;
-            return [
-              `Model: ${d.name}`,
-              `Organization: ${d.organization}`,
-              `Cost: ${d.x.toFixed(6)} €`,
-              `CO₂: ${d.y.toFixed(2)} g`,
-              `Performance: ${d.r.toFixed(2)}`,
-              `Arena Score: ${d.larena.toFixed(2)}`,
-              `Tokens: ${d.inputTokens} in / ${d.outputTokens} out`
-            ];
-          }
+    const newData = {
+      datasets: [{
+        label: 'Recommended LLMs',
+        data: recommendations.map(model => ({
+          x: model.cost_usd || 0,
+          y: model.carbon_footprint || 0,
+          r: 5 + (model.arena_score / maxArena) * 10, 
+          name: model.model,
+          arena_score: model.arena_score,
+          organization: model.organization,
+          inputTokens: model.input_tokens,
+          outputTokens: model.output_tokens
+        })),
+        backgroundColor: recommendations.map(model => 
+          getColor(model.arena_score / maxArena) 
+        ),
+        borderColor: '#ffffff',
+        borderWidth: 1
+      }]
+    };
+    setChartData(newData);
+  }
+}, [response]);
+
+
+const options = {
+  plugins: {
+    tooltip: {
+      callbacks: {
+        label: (context) => {
+          const data = context.raw;
+          return [
+            `Model: ${data.name}`,
+            `Organization: ${data.organization}`,
+            `Cost: $${data.x?.toFixed(6) || '0'}`,
+            `CO₂: ${data.y?.toFixed(6) || '0'} kg`,
+            `Arena Score: ${data.arena_score?.toFixed(2) || '0'}`,
+            `Tokens: ${data.inputTokens} in / ${data.outputTokens} out`
+          ];
         }
-      },
-      legend: { display: false }
-    },
-    scales: {
-      x: {
-        title: { display: true, text: 'Cost (€)' },
-        min: 0,
-        max: 0.0005
-      },
-      y: {
-        title: { display: true, text: 'Carbon footprint (g CO₂e)' },
-        min: 0,
-        max: 2
       }
     },
-    responsive: true,
-    maintainAspectRatio: false,
-  };
+    legend: {
+      display: false
+    }
+  },
+  scales: {
+    x: {
+      title: {
+        display: true,
+        text: 'Cost (USD)'
+      },
+      min: 0,
+      suggestedMax: 0.0005 // Valeur par défaut mais s'adaptera si nécessaire
+    },
+    y: {
+      title: {
+        display: true,
+        text: 'Carbon Footprint (kg CO₂e)'
+      },
+      min: 0,
+      suggestedMax: 0.002 // Valeur par défaut mais s'adaptera si nécessaire
+    }
+  },
+  responsive: true,
+  maintainAspectRatio: false
+};
 
   const analyzePrompt = async () => {
     if (!prompt.trim()) {
