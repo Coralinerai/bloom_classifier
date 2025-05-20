@@ -44,7 +44,7 @@ function App() {
             inputTokens: model.input_tokens,
             outputTokens: model.output_tokens
           })),
-          backgroundColor: response.recommendations.map(model => getColor(model.arena_score)),
+          backgroundColor: response.recommendations.map(model => getColor(model.arena_score,model.carbon_footprint,model.cost_usd)),
           borderColor: '#fff',
           borderWidth: 1,
           pointStyle: 'circle',
@@ -239,6 +239,7 @@ function App() {
                       ? '$' + model.cost_usd.toFixed(6) 
                       : model.cost_usd}
                   </p>
+                  <p><strong>Carbon emission</strong> {model.carbon_footprint}</p>
                 </div>
               ))}
             </div>
